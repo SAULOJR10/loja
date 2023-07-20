@@ -29,7 +29,7 @@
                     <h4>Login</h4>
                     <input type="text" name="acao" value="login" style="display: none;">
                     <input type="text" class="e-mail" name="e-mail" id="e-mail" placeholder="E-mail">
-                    <input type="text" class="senha" name="senha" id="senha" placeholder="Senha">
+                    <input type="password" class="senha" name="senha" id="senha" placeholder="Senha">
                     <br>
                     <input type="submit" class="button-login" value="Faça seu login">
                 </form>

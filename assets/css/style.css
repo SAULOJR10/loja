@@ -125,7 +125,8 @@ h6 {
     margin-bottom: 30px;
 }
 
-input[type=text] {
+input[type=text],
+input[type=password] {
     margin-bottom: 20px;
     width: 100%;
     background-color: transparent;
@@ -265,7 +266,6 @@ select:focus {
 }
 
 .div-divisao {
-    width: 60%;
     margin: 0 auto;
     margin-top: 40px;
     text-align: center;
@@ -309,6 +309,7 @@ select:focus {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
+    color: #fff;
 }
 
 
@@ -11343,6 +11344,10 @@ h5,
     padding: 15px 0;
 }
 
+.calendar_weekdays div {
+    width: 13.77%;
+}
+
 .calendar_content div {
     border: 1px solid transparent;
     float: left;
@@ -11361,8 +11366,12 @@ h5,
 }
 
 .calendar_content div.past-date {
-    color: #d5d5d5;
+    color: #000;
     pointer-events: none;
+}
+
+.calendar_content div.past-date p {
+    opacity: 0.5;
 }
 
 .calendar_content div.today {
@@ -11392,11 +11401,11 @@ h5,
     -ms-transform: translateY(-50%);
     transform: translateY(-50%);
     content: '';
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
     margin: 0 auto;
-    background: #0ABBF3;
+    background: #d5d5d5;
     z-index: -1;
     -webkit-box-shadow: 0px 5px 11px -9px rgba(0, 0, 0, 0.48);
     -moz-box-shadow: 0px 5px 11px -9px rgba(0, 0, 0, 0.48);
@@ -11406,6 +11415,7 @@ h5,
 .calendar_content div.selected {
     background-color: #0ABBF3!important;
     color: white!important;
+    border-radius: 5px;
 }
 
 .calendar_header {
@@ -11473,4 +11483,14 @@ button.switch-month:hover {
 
 #elemento_pai .col-sm-7 h6 {
     font-size: 0.8rem;
+}
+
+.button_quantidade {
+    border: none;
+    border-radius: 50%;
+    background-color: #f68c16;
+    color: #fff;
+    align-items: center;
+    width: 30px;
+    height: 30px;
 }
