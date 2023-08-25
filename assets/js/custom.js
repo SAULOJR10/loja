@@ -1,23 +1,31 @@
 $(document).ready(function() {
+    const date = new Date();
+    const currentMonth = date.getMonth() + 1;
+    const currentYear = date.getFullYear();
+    montar_calendario(currentMonth, currentYear)
+});
+
+function montar_calendario(currentMonth, currentYear) {
     $.ajax({
         method: 'post',
         dataType: 'json',
         url: 'assets/bib/select.php',
         data: {
             acao: 'montar_calendario',
+            mes: currentMonth,
+            ano: currentYear,
             processoData: false,
             contentype: false,
         },
         success: function(data) {
             $('#calender').empty();
             $('#calender').append(data);
-            console.log(data);
         },
         error: function(msg) {
-            alert(msg.responseText);
+            console.log(msg.responseText);
         }
     });
-});
+}
 
 function etapas_ingresso(tipo) {
     if (tipo == 'selecao_parque') {

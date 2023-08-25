@@ -226,18 +226,44 @@ function parques_abertos()
 function montar_calendario()
 {
     global $connect;
-
+    $mes = $_POST['mes'];
+    $ano = $_POST['ano'];
     setlocale(LC_TIME, 'pt_BR', 'pt_BR.utf-8', 'pt_BR.utf-8', 'portuguese');
     date_default_timezone_set('America/Sao_Paulo');
-    $num_dia = strftime('%d', strtotime('today'));
-    $nome_mes = strftime('%B', strtotime('today'));
+    $dia_de_hoje = strftime('%d', strtotime('today'));
+    $mes_atual = num_mes(strftime('%B', strtotime("today")));
+    $ano_atual = strftime('%Y', strtotime('today'));
+    if ($mes == 3) {
+        $nome_mes = "março";
+    } else {
+        $nome_mes = strftime('%B', strtotime("$ano-$mes"));
+    }
     $mes = num_mes($nome_mes);
-    $ano = strftime('%Y', strtotime('today'));
     $dias_no_mes = cal_days_in_month(CAL_GREGORIAN, $mes, $ano);
+    $proximo_mes = $mes + 1;
+    if ($proximo_mes >= 12) {
+        $proximo_ano = $ano + 1;
+        $proximo_mes = 1;
+    } else {
+        $proximo_ano = $ano;
+    }
+
+    if ($mes_atual == $mes && $ano == $ano_atual) {
+        $nao_clica = "style='pointer-events: none;'";
+    } else {
+        $nao_clica = '';
+    }
+    $mes_anterior = $mes - 1;
+    if ($mes <= 1) {
+        $ano_anterior = $ano - 1;
+        $mes_anterior = 12;
+    } else {
+        $ano_anterior = $ano;
+    }
 
     $resultado = "<div class='calendar calendar-first' id='calendar_first'>
                 <div class='calendar_header'>
-                    <button class='switch-month switch-left' id='button_voltar' style='pointer-events: none;'>
+                    <button class='switch-month switch-left' id='button_voltar' $nao_clica onclick='montar_calendario($mes_anterior, $ano_anterior)'>
                         <svg fill='#f68c16' viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'>
                             <path
                                 d='M256 0C114.6 0 0 114.6 0 256c0 141.4 114.6 256 256 256s256-114.6 256-256C512 114.6 397.4 0 256 0zM310.6 345.4c12.5 12.5 12.5 32.75 0 45.25s-32.75 12.5-45.25 0l-112-112C147.1 272.4 144 264.2 144 256s3.125-16.38 9.375-22.62l112-112c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25L221.3 256L310.6 345.4z'>
@@ -245,7 +271,7 @@ function montar_calendario()
                         </svg>
                     </button>
                     <h2 id='mes'>$nome_mes $ano</h2>
-                    <button class='switch-month switch-right'>
+                    <button class='switch-month switch-right' onclick='montar_calendario($proximo_mes, $proximo_ano)'>
                         <svg fill='#f68c16' viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'>
                             <path
                                 d='M256 0C114.6 0 0 114.6 0 256c0 141.4 114.6 256 256 256s256-114.6 256-256C512 114.6 397.4 0 256 0zM358.6 278.6l-112 112c-12.5 12.5-32.75 12.5-45.25 0s-12.5-32.75 0-45.25L290.8 256L201.4 166.6c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0l112 112C364.9 239.6 368 247.8 368 256S364.9 272.4 358.6 278.6z'>
@@ -277,7 +303,7 @@ function montar_calendario()
 
     for ($i = 1; $i <= $dias_no_mes; $i++) {
         $dia_semana = date('w', strtotime("$i-$mes-$ano"));
-        if ($dia_semana == '0' || $dia_semana == '6') { // dias que são inais de semana
+        if ($dia_semana == '0' || $dia_semana == '6') { // finais de semana
             $fimdesemana = "fim_de_semana";
         } else {
             $fimdesemana = '';
@@ -287,25 +313,31 @@ function montar_calendario()
         $query1 = $connect->query($sql1);
         $result1 = mysqli_fetch_assoc($query1);
 
-        if ($i >= $num_dia) { // teste são dias passado
-            if ($i == $num_dia) { // teste se é o dia de hoje
+        if ($i >= $dia_de_hoje || $mes > $mes_atual || $ano > $ano_atual) { // Dias passados
+            if ($i == $dia_de_hoje && $mes == $mes_atual && $ano == $ano_atual) { // teste se é o dia de hoje 
                 $resultado .= "<div class='today $fimdesemana' style='color: rgb(0, 189, 170);'>
                                     <p style='margin: 0px;'>$i<br><b style='opacity: 0;'>00,00</b></p>
                                </div>";
             } else {
-                if ($result1['valor_promocao'] != NULL) { // teste se TEM promocao no dia
+                if ($result1['valor_promocao'] != NULL && $result1['valor_promocao'] != '') { // teste se TEM promocao no dia
                     $valor_promo = $result1['valor_promocao'];
                     $resultado .= "<div class='promocao $fimdesemana'>
                                         <p style='margin: 0px;'>$i<br><b>$valor_promo</b></p>
                                    </div>";
                 } else { // teste se NÃO tem promocao no dia
-                    $sql2 = "SELECT MIN(valor) AS valor FROM ingresso WHERE data_inicial <= '$dia_do_mes' AND data_final >= '$dia_do_mes' LIMIT 1";
+                    $sql2 = "SELECT MIN(valor) AS valor  FROM ingresso WHERE data_inicial <= '$dia_do_mes' AND data_final >= '$dia_do_mes' LIMIT 1";
                     $query2 = $connect->query($sql2);
                     $result2 = mysqli_fetch_assoc($query2);
-                    $valor = $result2['valor'];
-                    $resultado .= "<div class='$fimdesemana'>
+                    if ($result2['valor'] == '') {
+                        $resultado .= "<div class='$fimdesemana'>
+                                        <p style='margin: 0px;'>$i<br><b style='opacity: 0;'>0</b></p>
+                                   </div>";
+                    } else {
+                        $valor = $result2['valor'];
+                        $resultado .= "<div class='$fimdesemana'>
                                         <p style='margin: 0px;'>$i<br><b>$valor</b></p>
                                    </div>";
+                    }
                 }
             }
         } else { // faça se são dias passados
@@ -318,128 +350,14 @@ function montar_calendario()
     $dias_preencher = date('w', strtotime("$dias_no_mes-$mes-$ano"));
     $quant_dias_restante = 7 - (intval($dias_preencher) + 1);
     for ($i = 1; $i <= $quant_dias_restante; $i++) {
-        if($i == $quant_dias_restante){
+        if ($i == $quant_dias_restante) {
             $fimdesemana = "fim_de_semana";
+        }else{
+            $fimdesemana = '';
         }
         $resultado .= "<div class='blank $fimdesemana'>0<br>0</div>";
     }
 
     $resultado .= "</div></div>";
     echo json_encode($resultado);
-
-
-    //     $sql = "SELECT MIN(valor) ingressos WHERE DATE($data_atual) <= data_validade) LIMIT 1";
-    //     $query = $connect->query($sql);
-    //     $result = mysqli_fetch_assoc($query);
-    //     $valor = $result['valor'];
-
-    //     $result .= "<div class='calendar_content'>
-    //         <div class='blank fim_de_semana'>0<br>0</div>
-    //         <div class='blank '>0<br>0</div>
-    //         <div class='blank '>0<br>0</div>
-    //         <div class='blank '>0<br>0</div>
-    //         <div class='blank '>0<br>0</div>
-    //         <div class='blank '>0<br>0</div>
-    //         <div class='past-date fim_de_semana'>
-    //             <p style='margin: 0px;'>1<br><b style='opacity: 0;'>00,00</b></p>
-    //         </div>
-    //         <div class='past-date fim_de_semana'>
-    //             <p style='margin: 0px;'>2<br><b style='opacity: 0;'>00,00</b></p>
-    //         </div>
-    //         <div class='past-date '>
-    //             <p style='margin: 0px;'>3<br><b style='opacity: 0;'>00,00</b></p>
-    //         </div>
-    //         <div class='past-date '>
-    //             <p style='margin: 0px;'>4<br><b style='opacity: 0;'>00,00</b></p>
-    //         </div>
-    //         <div class='past-date '>
-    //             <p style='margin: 0px;'>5<br><b style='opacity: 0;'>00,00</b></p>
-    //         </div>
-    //         <div class='past-date '>
-    //             <p style='margin: 0px;'>6<br><b style='opacity: 0;'>00,00</b></p>
-    //         </div>
-    //         <div class='past-date '>
-    //             <p style='margin: 0px;'>7<br><b style='opacity: 0;'>00,00</b></p>
-    //         </div>
-    //         <div class='past-date fim_de_semana'>
-    //             <p style='margin: 0px;'>8<br><b style='opacity: 0;'>00,00</b></p>
-    //         </div>
-    //         <div class='past-date fim_de_semana'>
-    //             <p style='margin: 0px;'>9<br><b style='opacity: 0;'>00,00</b></p>
-    //         </div>
-    //         <div class='past-date '>
-    //             <p style='margin: 0px;'>10<br><b style='opacity: 0;'>00,00</b></p>
-    //         </div>
-    //         <div class='past-date '>
-    //             <p style='margin: 0px;'>11<br><b style='opacity: 0;'>00,00</b></p>
-    //         </div>
-    //         <div class='past-date '>
-    //             <p style='margin: 0px;'>12<br><b style='opacity: 0;'>00,00</b></p>
-    //         </div>
-    //         <div class='past-date '>
-    //             <p style='margin: 0px;'>13<br><b style='opacity: 0;'>00,00</b></p>
-    //         </div>
-    //         <div class='past-date '>
-    //             <p style='margin: 0px;'>14<br><b style='opacity: 0;'>00,00</b></p>
-    //         </div>
-    //         <div class='past-date fim_de_semana'>
-    //             <p style='margin: 0px;'>15<br><b style='opacity: 0;'>00,00</b></p>
-    //         </div>
-    //         <div class='past-date fim_de_semana'>
-    //             <p style='margin: 0px;'>16<br><b style='opacity: 0;'>00,00</b></p>
-    //         </div>
-    //         <div class='past-date '>
-    //             <p style='margin: 0px;'>17<br><b style='opacity: 0;'>00,00</b></p>
-    //         </div>
-    //         <div class='past-date '>
-    //             <p style='margin: 0px;'>18<br><b style='opacity: 0;'>00,00</b></p>
-    //         </div>
-    //         <div class='past-date '>
-    //             <p style='margin: 0px;'>19<br><b style='opacity: 0;'>00,00</b></p>
-    //         </div>
-    //         <div class='today ' style='color: rgb(0, 189, 170);'>
-    //             <p style='margin: 0px;'>20<br><b style='opacity: 0;'>00,00</b></p>
-    //         </div>
-    //         <div class=''>
-    //             <p style='margin: 0px;'>21<br><b style='opacity: 1;'>69,99</b></p>
-    //         </div>
-    //         <div class='fim_de_semana'>
-    //             <p style='margin: 0px;'>22<br><b style='opacity: 1;'>69,99</b></p>
-    //         </div>
-    //         <div class='fim_de_semana'>
-    //             <p style='margin: 0px;'>23<br><b style='opacity: 1;'>69,99</b></p>
-    //         </div>
-    //         <div class=''>
-    //             <p style='margin: 0px;'>24<br><b style='opacity: 1;'>69,99</b></p>
-    //         </div>
-    //         <div class=''>
-    //             <p style='margin: 0px;'>25<br><b style='opacity: 1;'>69,99</b></p>
-    //         </div>
-    //         <div class=''>
-    //             <p style='margin: 0px;'>26<br><b style='opacity: 1;'>69,99</b></p>
-    //         </div>
-    //         <div class=''>
-    //             <p style='margin: 0px;'>27<br><b style='opacity: 1;'>69,99</b></p>
-    //         </div>
-    //         <div class=''>
-    //             <p style='margin: 0px;'>28<br><b style='opacity: 1;'>69,99</b></p>
-    //         </div>
-    //         <div class='fim_de_semana'>
-    //             <p style='margin: 0px;'>29<br><b style='opacity: 1;'>69,99</b></p>
-    //         </div>
-    //         <div class='fim_de_semana'>
-    //             <p style='margin: 0px;'>30<br><b style='opacity: 1;'>69,99</b></p>
-    //         </div>
-    //         <div class=''>
-    //             <p style='margin: 0px;'>31<br><b style='opacity: 1;'>69,99</b></p>
-    //         </div>
-    //         <div class='blank '>0<br>0</div>
-    //         <div class='blank '>0<br>0</div>
-    //         <div class='blank '>0<br>0</div>
-    //         <div class='blank '>0<br>0</div>
-    //         <div class='blank fim_de_semana'>0<br>0</div>
-    //     </div>
-    // </div>";
-
-    //     echo json_encode($result);
 }
