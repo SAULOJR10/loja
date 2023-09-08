@@ -15,6 +15,9 @@ if (isset($_POST['acao'])) {
         case 'montar_calendario':
             montar_calendario();
             break;
+        case 'exibir_carrinho':
+            exibir_carrinho();
+            break;
     }
 }
 
@@ -22,14 +25,14 @@ function login()
 {
     global $connect;
 
-    $email = $_POST['e-mail'];
+    $email = $_POST['e_mail'];
     $senha = md5($_POST['senha']);
 
     $sql = "SELECT * FROM login_usuario INNER JOIN dados_usuario ON login_usuario.id = dados_usuario.fk_login WHERE login = '$email' AND senha = '$senha'";
     $return = $connect->query($sql);
 
     if (mysqli_num_rows($return) === 0) {
-        echo "Login inválido, verifique se digitou os campos corretamente e tente novamente.";
+        echo json_encode("Titulo: Login e senha não correspondem. Text: <h5 style='text-align: center;'>Login inválido, verifique se digitou os campos corretamente e tente novamente.</h5>");
         exit;
     } else {
         session_start();
@@ -54,7 +57,7 @@ function login()
             "nacionalidade" => "$nacionalidade",
             "email_marketing" => "$email_marketing",
         );
-        header('Location: ../../index.php');
+        echo json_encode("Sucesso");
         exit;
     }
 }
@@ -99,8 +102,6 @@ function tipos_ingressos()
                         </div>
                     </div";
     }
-
-    $retorno .= "<div><button type='button' data-bs-target='#carouselExample' data-bs-slide='prev' style='width: 96%; margin: 2%; background-color: #f68c16; color: white; border: none; border-radius: 5px;' onclick='etapas_ingresso(\"selecao_parque\")'> Voltar para a seleção do parque</button></div>";
 
     echo json_encode($retorno);
 }
@@ -264,29 +265,47 @@ function montar_calendario()
     $resultado = "<div class='calendar calendar-first' id='calendar_first'>
                 <div class='calendar_header'>
                     <button class='switch-month switch-left' id='button_voltar' $nao_clica onclick='montar_calendario($mes_anterior, $ano_anterior)'>
-                        <svg fill='#f68c16' viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'>
-                            <path
-                                d='M256 0C114.6 0 0 114.6 0 256c0 141.4 114.6 256 256 256s256-114.6 256-256C512 114.6 397.4 0 256 0zM310.6 345.4c12.5 12.5 12.5 32.75 0 45.25s-32.75 12.5-45.25 0l-112-112C147.1 272.4 144 264.2 144 256s3.125-16.38 9.375-22.62l112-112c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25L221.3 256L310.6 345.4z'>
-                            </path>
-                        </svg>
+                    <svg style='transform: rotate(180deg);' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1' x='0px' y='0px' viewBox='0 0 80 80' style='enable-background:new 0 0 80 80;' xml:space='preserve'>
+                    <style type='text/css'>
+                        .st0{fill:#DD9D57;}
+                        .st1{fill:#E5650E;}
+                    </style>
+                    <g>
+                        <g id='XMLID_00000013190481926466546840000010218336091466452389_'>
+                            <path id='XMLID_00000170272149239471086570000011021174623930353312_' class='st0' d='M17.48,19.75c0.6-0.17,1.22-0.27,1.84-0.32    c1.96-0.14,4-0.3,5.52,1.17l13.32,12.83c0.07,0.07,0.13,0.15,0.18,0.23c3.05,5.18,2.22,10.89-1.45,14.56L19.95,65.16    c-0.63,0.63-1.71,0.18-1.71-0.71V54.09c0-0.27,0.11-0.52,0.29-0.71L30.3,41.62c0.51-0.51,0.59-1.11,0.58-1.43    c0-0.31-0.09-0.91-0.61-1.41L13.31,22.45c-0.65-0.62-0.23-1.41,0.69-1.72L17.48,19.75z'/>
+                        </g>
+                        <g id='XMLID_00000168076439351609785390000016382474320750115474_'>
+                            <path id='XMLID_00000176735650774556211470000000843108662465695640_' class='st1' d='M30.91,78.16l-5.18-5.18    c-0.39-0.39-0.39-1.02,0-1.41l30.23-30.23c0.51-0.51,0.59-1.11,0.58-1.43c0-0.31-0.09-0.91-0.61-1.41L25.76,9.43    c-0.4-0.39-0.41-1.03-0.01-1.43l5.18-5.18c0.39-0.39,1.01-0.39,1.4-0.01l30.08,28.97c3.73,3.6,4.68,9.29,1.72,14.53    c-0.05,0.09-0.11,0.17-0.18,0.24L32.32,78.16C31.93,78.55,31.3,78.55,30.91,78.16z'/>
+                        </g>
+                    </g>
+                    </svg>
                     </button>
-                    <h2 id='mes'>$nome_mes $ano</h2>
+                    <h2 id='mes'>$nome_mes <span class='text-ano'>$ano</span></h2>
                     <button class='switch-month switch-right' onclick='montar_calendario($proximo_mes, $proximo_ano)'>
-                        <svg fill='#f68c16' viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'>
-                            <path
-                                d='M256 0C114.6 0 0 114.6 0 256c0 141.4 114.6 256 256 256s256-114.6 256-256C512 114.6 397.4 0 256 0zM358.6 278.6l-112 112c-12.5 12.5-32.75 12.5-45.25 0s-12.5-32.75 0-45.25L290.8 256L201.4 166.6c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0l112 112C364.9 239.6 368 247.8 368 256S364.9 272.4 358.6 278.6z'>
-                            </path>
-                        </svg>
+                    <svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' id='Layer_1' x='0px' y='0px' viewBox='0 0 80 80' style='enable-background:new 0 0 80 80;' xml:space='preserve'>
+                    <style type='text/css'>
+                        .st0{fill:#DD9D57;}
+                        .st1{fill:#E5650E;}
+                    </style>
+                    <g>
+                        <g id='XMLID_00000013190481926466546840000010218336091466452389_'>
+                            <path id='XMLID_00000170272149239471086570000011021174623930353312_' class='st0' d='M17.48,19.75c0.6-0.17,1.22-0.27,1.84-0.32    c1.96-0.14,4-0.3,5.52,1.17l13.32,12.83c0.07,0.07,0.13,0.15,0.18,0.23c3.05,5.18,2.22,10.89-1.45,14.56L19.95,65.16    c-0.63,0.63-1.71,0.18-1.71-0.71V54.09c0-0.27,0.11-0.52,0.29-0.71L30.3,41.62c0.51-0.51,0.59-1.11,0.58-1.43    c0-0.31-0.09-0.91-0.61-1.41L13.31,22.45c-0.65-0.62-0.23-1.41,0.69-1.72L17.48,19.75z'/>
+                        </g>
+                        <g id='XMLID_00000168076439351609785390000016382474320750115474_'>
+                            <path id='XMLID_00000176735650774556211470000000843108662465695640_' class='st1' d='M30.91,78.16l-5.18-5.18    c-0.39-0.39-0.39-1.02,0-1.41l30.23-30.23c0.51-0.51,0.59-1.11,0.58-1.43c0-0.31-0.09-0.91-0.61-1.41L25.76,9.43    c-0.4-0.39-0.41-1.03-0.01-1.43l5.18-5.18c0.39-0.39,1.01-0.39,1.4-0.01l30.08,28.97c3.73,3.6,4.68,9.29,1.72,14.53    c-0.05,0.09-0.11,0.17-0.18,0.24L32.32,78.16C31.93,78.55,31.3,78.55,30.91,78.16z'/>
+                        </g>
+                    </g>
+                    </svg>
                     </button>
                 </div>
                 <div class='calendar_weekdays'>
-                    <div style='color: rgb(68, 68, 68);'>Dom</div>
-                    <div style='color: rgb(68, 68, 68);'>Seg</div>
-                    <div style='color: rgb(68, 68, 68);'>Ter</div>
-                    <div style='color: rgb(68, 68, 68);'>Qua</div>
-                    <div style='color: rgb(68, 68, 68);'>Qui</div>
-                    <div style='color: rgb(68, 68, 68);'>Sex</div>
-                    <div style='color: rgb(68, 68, 68);'>Sáb</div>
+                    <div style='color: #fd7e14;'>Dom</div>
+                    <div style='color: #000;'>Seg</div>
+                    <div style='color: #000;'>Ter</div>
+                    <div style='color: #000;'>Qua</div>
+                    <div style='color: #000;'>Qui</div>
+                    <div style='color: #000;'>Sex</div>
+                    <div style='color: #fd7e14;'>Sáb</div>
                 </div>
                 <div class='calendar_content'>";
     $dias_preencher = date('w', strtotime("01-$mes-$ano"));
@@ -297,7 +316,7 @@ function montar_calendario()
             } else {
                 $fimdesemana = '';
             }
-            $resultado .= "<div class='blank $fimdesemana'>0<br>0</div>";
+            $resultado .= "<div class='dia blank $fimdesemana'><p style='opacity: 0; margin: 0px; line-height: 100%;'>0<br><span>00,00</b></p></div>";
         }
     }
 
@@ -315,34 +334,34 @@ function montar_calendario()
 
         if ($i >= $dia_de_hoje || $mes > $mes_atual || $ano > $ano_atual) { // Dias passados
             if ($i == $dia_de_hoje && $mes == $mes_atual && $ano == $ano_atual) { // teste se é o dia de hoje 
-                $resultado .= "<div class='today $fimdesemana' style='color: rgb(0, 189, 170);'>
-                                    <p style='margin: 0px;'>$i<br><b style='opacity: 0;'>00,00</b></p>
+                $resultado .= "<div onclick='selecionar_dia($i)' id='dia$i' class='dia past-date $fimdesemana' style=''>
+                                    <p style='margin: 0px; line-height: 100%;'>$i <br><span style='opacity: 0;'>00,00</span></p>
                                </div>";
             } else {
                 if ($result1['valor_promocao'] != NULL && $result1['valor_promocao'] != '') { // teste se TEM promocao no dia
                     $valor_promo = $result1['valor_promocao'];
-                    $resultado .= "<div class='promocao $fimdesemana'>
-                                        <p style='margin: 0px;'>$i<br><b>$valor_promo</b></p>
+                    $resultado .= "<div onclick='selecionar_dia($i)' id='dia$i' class='dia promocao $fimdesemana'>
+                                        <p style='margin: 0px; line-height: 100%;'>$i <br><span style='color: #fff'>$valor_promo</b></p>
                                    </div>";
                 } else { // teste se NÃO tem promocao no dia
                     $sql2 = "SELECT MIN(valor) AS valor  FROM ingresso WHERE data_inicial <= '$dia_do_mes' AND data_final >= '$dia_do_mes' LIMIT 1";
                     $query2 = $connect->query($sql2);
                     $result2 = mysqli_fetch_assoc($query2);
                     if ($result2['valor'] == '') {
-                        $resultado .= "<div class='$fimdesemana'>
-                                        <p style='margin: 0px;'>$i<br><b style='opacity: 0;'>0</b></p>
+                        $resultado .= "<div onclick='selecionar_dia($i)' id='dia$i' class='dia $fimdesemana'>
+                                        <p style='margin: 0px; line-height: 100%;'>$i <br><span style='opacity: 0;'>0</b></p>
                                    </div>";
                     } else {
                         $valor = $result2['valor'];
-                        $resultado .= "<div class='$fimdesemana'>
-                                        <p style='margin: 0px;'>$i<br><b>$valor</b></p>
+                        $resultado .= "<div onclick='selecionar_dia($i)' id='dia$i' class='dia $fimdesemana'>
+                                        <p style='margin: 0px; line-height: 100%;'>$i <br><span style='color: #fff'>$valor</span></p>
                                    </div>";
                     }
                 }
             }
         } else { // faça se são dias passados
-            $resultado .= "<div class='past-date $fimdesemana'>
-                                <p style='margin: 0px;'>$i<br><b style='opacity: 0;'>00,00</b></p>
+            $resultado .= "<div class='dia past-date $fimdesemana'>
+                                <p style='margin: 0px; line-height: 100%;'>$i <br><span style='opacity: 0;'>00,00</b></p>
                             </div>";
         }
     }
@@ -352,12 +371,72 @@ function montar_calendario()
     for ($i = 1; $i <= $quant_dias_restante; $i++) {
         if ($i == $quant_dias_restante) {
             $fimdesemana = "fim_de_semana";
-        }else{
+        } else {
             $fimdesemana = '';
         }
-        $resultado .= "<div class='blank $fimdesemana'>0<br>0</div>";
+        $resultado .= "<div class='blank $fimdesemana'><p style='opacity: 0; margin: 0px; line-height: 100%;'>0<br><span>00,00</b></p></div>";
     }
 
     $resultado .= "</div></div>";
     echo json_encode($resultado);
+}
+
+function exibir_carrinho()
+{
+    session_start();
+    if ((!isset($_SESSION['carrinho']))) {
+        $resposta = "Vazio";
+    } else {
+        $resposta = "";
+        $valor_total = 0;
+        foreach ($_SESSION as $key => $valor) {
+            if ($key == "carrinho") {
+                $ultimo_valor_array = array_key_last($valor);
+                $primeiro_valor_array = array_key_first($valor);
+                if ($primeiro_valor_array !== null && $ultimo_valor_array !== null) {
+                    for ($c = $primeiro_valor_array; $c <= $ultimo_valor_array; $c++) {
+                        if ($valor[$c] != NULL) {
+                            $quantidade = $valor[$c]['quantidade'];
+                            $date = $valor[$c]['data'];
+                            $nome = $valor[$c]['nome'];
+                            $valor_ingresso =  number_format(floatval($valor[$c]['preco']), 2);
+                            $valor_total = $valor_total + $valor_ingresso;
+                            $resposta .= "<div id='item$c' class='row div_itens'>
+                                        <input type='number' style='display: none;' value='$c' id='item_array$c'>
+                                        <div class='col-8' style='text-align: left;'>
+                                            <h6 style='color: #000; font-weight: 600;'>
+                                                <span>$nome</span>
+                                            </h6>
+                                            <p style='color: #000; font-weight: 400;'>
+                                            Data: $date<br>
+                                            Quantidade: $quantidade
+                                            </p>
+                                            <h6 style='color: #fd7e14; font-weight: 600;'>
+                                                <span>Valor unitário: $valor_ingresso</span>
+                                            </h6><br>
+                                        </div>
+                                        <div class='col-4'>
+                                        <center>
+                                            <button class='button_quantidade' onclick='menos_carrinho($c)'>-</button>
+                                                <span class='quantidade' id='quant_ingresso_carrinho$c'>$quantidade</span>
+                                                <button class='button_quantidade' onclick='mais_carrinho($c)'>+</button>
+                                            </center>
+                                        </div>
+                                    </div>";
+                        }
+                    }
+                    $valor_total = number_format($valor_total, 2);
+                    $resposta .= "<div id='valor_total' class='row valor_total'>
+                                        <h6 style='color: #fd7e14; font-weight: 600;'>
+                                            <span>Valor Total: $valor_total</span>
+                                        </h6><br>
+                                  </div>";
+                }
+            }
+        }
+    }
+    if ($resposta == "") {
+        $resposta = "<div style='display: flex; justify-content: center; align-items: center;'><h5 style='text-align: center'>Nenhum item adicionado ao seu carrinho!</h5>";
+    }
+    echo json_encode($resposta);
 }
